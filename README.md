@@ -12,7 +12,7 @@ This is a separate, web-only Expo project. It does not replace the native iOS ap
 
 ## Status
 
-Feature-complete for a first version: Logbook, Totals, Settings (backup export/restore, PDF export) and Pay (crew-pay/tax calculator with NBRK exchange-rate auto-fetch) are all real screens. 185 tests pass, `expo export -p web` produces a working static build, and it's been confirmed working end-to-end in real Safari on an iPhone — data survives a page reload.
+Feature-complete: Logbook, Totals, Settings (backup export/restore, PDF export), Pay (crew-pay/tax calculator with NBRK exchange-rate auto-fetch), and PDF roster import (pick → parse → review → save, via `pdfjs-dist` running straight in the page — actually simpler than the native app's hidden-WebView approach, since browsers can run pdf.js directly) are all real screens. 185 tests pass, `expo export -p web` produces a working static build, and it's been confirmed working end-to-end in real Safari on an iPhone — data survives a page reload.
 
 **Known limitation:** the NBRK exchange-rate fetch (`src/lib/crewPay/nbrkRate.ts`) calls `nationalbank.kz` directly from the browser. That endpoint sends no CORS header, so browsers will likely block it — the app already degrades gracefully to manual rate entry when the fetch fails, but a same-origin proxy (a Cloudflare Pages Function) would fix it properly and hasn't been built yet.
 
