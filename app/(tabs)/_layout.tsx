@@ -2,11 +2,12 @@ import { Tabs } from 'expo-router';
 
 /**
  * A plain JS tab bar — this is a web-only PWA, so there is no native tab bar (and no Liquid
- * Glass) to reach for; expo-router/unstable-native-tabs has no web implementation at all.
+ * Glass) to reach for; expo-router/unstable-native-tabs has no web implementation at all. Each
+ * screen renders its own large-title header via ScreenTitle, so the tab bar's own header is hidden.
  */
 export default function TabsLayout() {
   return (
-    <Tabs>
+    <Tabs screenOptions={{ headerShown: false }}>
       <Tabs.Screen name="index" options={{ title: 'Logbook' }} />
       <Tabs.Screen name="pay" options={{ title: 'Зарплата' }} />
       <Tabs.Screen name="totals" options={{ title: 'Totals' }} />
