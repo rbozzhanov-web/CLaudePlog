@@ -12,7 +12,18 @@ export default function Root({ children }: PropsWithChildren) {
       <head>
         <meta charSet="utf-8" />
         <meta httpEquiv="X-UA-Compatible" content="IE=edge" />
-        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+        {/*
+          viewport-fit=cover is required for two things at once: it's what lets the installed PWA
+          draw edge-to-edge under the notch/Dynamic Island and home indicator instead of leaving
+          them as blank bars, and it's the only thing that makes `env(safe-area-inset-*)` resolve
+          to real values instead of 0 — which is what react-native-safe-area-context's web
+          implementation reads. Without it, ScreenTitle's top padding and every screen's bottom
+          inset (insets.bottom) come out as 0 even though iOS is actually overlaying the status bar
+          (apple-mobile-web-app-status-bar-style below is "black-translucent", an overlay style) and
+          the home indicator on top of the content — which is exactly why content was clipped at the
+          top and ran under the home indicator when opened as an installed app.
+        */}
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no, viewport-fit=cover" />
         <title>Pilot Logbook</title>
 
         <ScrollViewStyleReset />
