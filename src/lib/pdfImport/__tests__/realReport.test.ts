@@ -20,7 +20,9 @@ const FIXTURE = '/tmp/realcheck/pages.json';
 const describeIfFixture = existsSync(FIXTURE) ? describe : describe.skip;
 
 describeIfFixture('the real Air Astana report', () => {
-  const pages = JSON.parse(readFileSync(FIXTURE, 'utf8')) as ExtractedPage[];
+  // Read guarded even under describe.skip: Jest still evaluates a describe callback's own body
+  // to enumerate its child tests, skip or not — only the it() bodies inside are actually skipped.
+  const pages = existsSync(FIXTURE) ? (JSON.parse(readFileSync(FIXTURE, 'utf8')) as ExtractedPage[]) : [];
   const result = parseRoster(pages);
 
   const flights = result.candidates.filter((c) => (c.fields.simulatorMinutes ?? 0) === 0);
