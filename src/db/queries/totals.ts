@@ -1,7 +1,4 @@
-import { and, gte, lte, sql } from 'drizzle-orm';
-
-import { getDb } from '../client';
-import { flightEntries } from '../schema';
+import { loadEntries } from '../webStorage';
 
 export interface LogbookTotals {
   entryCount: number;
@@ -41,30 +38,30 @@ const ZERO_TOTALS: LogbookTotals = {
 };
 
 export async function getTotals(range?: { from?: string; to?: string }): Promise<LogbookTotals> {
-  const conditions = [];
-  if (range?.from) conditions.push(gte(flightEntries.date, range.from));
-  if (range?.to) conditions.push(lte(flightEntries.date, range.to));
+  let entries = loadEntries();
+  if (range?.from) entries = entries.filter((e) => e.date >= range.from!);
+  if (range?.to) entries = entries.filter((e) => e.date <= range.to!);
 
-  const rows = await getDb()
-    .select({
-      entryCount: sql<number>`count(*)`,
-      totalMinutes: sql<number>`coalesce(sum(${flightEntries.totalTimeMinutes}), 0)`,
-      picMinutes: sql<number>`coalesce(sum(${flightEntries.picMinutes}), 0)`,
-      sicMinutes: sql<number>`coalesce(sum(${flightEntries.sicMinutes}), 0)`,
-      dualReceivedMinutes: sql<number>`coalesce(sum(${flightEntries.dualReceivedMinutes}), 0)`,
-      dualGivenMinutes: sql<number>`coalesce(sum(${flightEntries.dualGivenMinutes}), 0)`,
-      soloMinutes: sql<number>`coalesce(sum(${flightEntries.soloMinutes}), 0)`,
-      dayMinutes: sql<number>`coalesce(sum(${flightEntries.dayMinutes}), 0)`,
-      nightMinutes: sql<number>`coalesce(sum(${flightEntries.nightMinutes}), 0)`,
-      instrumentMinutes: sql<number>`coalesce(sum(${flightEntries.actualInstrumentMinutes} + ${flightEntries.simulatedInstrumentMinutes}), 0)`,
-      crossCountryMinutes: sql<number>`coalesce(sum(${flightEntries.crossCountryMinutes}), 0)`,
-      simulatorMinutes: sql<number>`coalesce(sum(${flightEntries.simulatorMinutes}), 0)`,
-      dayLandings: sql<number>`coalesce(sum(${flightEntries.dayLandings}), 0)`,
-      nightLandings: sql<number>`coalesce(sum(${flightEntries.nightLandings}), 0)`,
-      instrumentApproaches: sql<number>`coalesce(sum(${flightEntries.instrumentApproaches}), 0)`,
-    })
-    .from(flightEntries)
-    .where(conditions.length ? and(...conditions) : undefined);
-
-  return rows[0] ?? ZERO_TOTALS;
+  return entries.reduce<LogbookTotals>(
+    (totals, entry) => ({
+      entryCount: totals.entryCount + 1,
+      totalMinutes: totals.totalMinutes + entry.totalTimeMinutes,
+      picMinutes: totals.picMinutes + entry.picMinutes,
+      sicMinutes: totals.sicMinutes + entry.sicMinutes,
+      dualReceivedMinutes: totals.dualReceivedMinutes + entry.dualReceivedMinutes,
+      dualGivenMinutes: totals.dualGivenMinutes + entry.dualGivenMinutes,
+      soloMinutes: totals.soloMinutes + entry.soloMinutes,
+      dayMinutes: totals.dayMinutes + entry.dayMinutes,
+      nightMinutes: totals.nightMinutes + entry.nightMinutes,
+      instrumentMinutes: totals.instrumentMinutes + entry.actualInstrumentMinutes + entry.simulatedInstrumentMinutes,
+      crossCountryMinutes: totals.crossCountryMinutes + entry.crossCountryMinutes,
+      // Coalesced because localStorage has no schema: entries saved before this field existed
+      // carry `undefined`, and `number + undefined` is NaN, which would poison the whole reduce.
+      simulatorMinutes: totals.simulatorMinutes + (entry.simulatorMinutes ?? 0),
+      dayLandings: totals.dayLandings + entry.dayLandings,
+      nightLandings: totals.nightLandings + entry.nightLandings,
+      instrumentApproaches: totals.instrumentApproaches + entry.instrumentApproaches,
+    }),
+    ZERO_TOTALS,
+  );
 }

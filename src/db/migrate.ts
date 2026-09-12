@@ -1,9 +1,4 @@
-import { useMigrations } from 'drizzle-orm/expo-sqlite/migrator';
-
-import migrations from '../../drizzle/migrations';
-import { getDb } from './client';
-
-/** Runs pending Drizzle migrations against the local SQLite DB; call once at app boot. */
+/** Storage is a flat localStorage-backed store (see webStorage.ts) — there is no schema to migrate. */
 export function useDatabaseMigrations() {
-  return useMigrations(getDb(), migrations);
+  return { success: true, error: undefined as Error | undefined };
 }

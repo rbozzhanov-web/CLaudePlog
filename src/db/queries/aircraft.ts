@@ -1,30 +1,32 @@
-import { eq } from 'drizzle-orm';
 import { v4 as uuidv4 } from 'uuid';
 
+import { loadJson, saveJson } from '@/src/lib/webJsonStore';
 import { Aircraft } from '@/src/types/logbook';
-import { getDb } from '../client';
-import { aircraft } from '../schema';
 
-function fromRow(row: typeof aircraft.$inferSelect): Aircraft {
-  return {
-    id: row.id,
-    registration: row.registration,
-    type: row.type,
-    createdAt: row.createdAt,
-  };
+const AIRCRAFT_KEY = 'pilot-logbook:aircraft';
+
+function parseAircraft(raw: unknown): Aircraft[] {
+  return Array.isArray(raw) ? (raw as Aircraft[]) : [];
+}
+
+function loadAircraft(): Aircraft[] {
+  return loadJson(AIRCRAFT_KEY, parseAircraft, []);
+}
+
+function saveAircraft(rows: Aircraft[]): void {
+  saveJson(AIRCRAFT_KEY, rows);
 }
 
 export async function listAircraft(): Promise<Aircraft[]> {
-  const rows = await getDb().select().from(aircraft).orderBy(aircraft.registration);
-  return rows.map(fromRow);
+  return [...loadAircraft()].sort((a, b) => (a.registration < b.registration ? -1 : 1));
 }
 
 /** Returns the existing aircraft for a registration, creating one if it doesn't exist yet. */
 export async function getOrCreateAircraft(registration: string, type: string): Promise<Aircraft> {
-  const existing = await getDb().select().from(aircraft).where(eq(aircraft.registration, registration)).limit(1);
-  if (existing[0]) return fromRow(existing[0]);
+  const existing = loadAircraft().find((a) => a.registration === registration);
+  if (existing) return existing;
 
-  const row = { id: uuidv4(), registration, type, createdAt: new Date().toISOString() };
-  await getDb().insert(aircraft).values(row);
-  return fromRow(row);
+  const row: Aircraft = { id: uuidv4(), registration, type, createdAt: new Date().toISOString() };
+  saveAircraft([...loadAircraft(), row]);
+  return row;
 }

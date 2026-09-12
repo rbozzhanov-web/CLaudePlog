@@ -35,13 +35,6 @@ jobs:
       - name: Export static web build
         run: npx expo export -p web
 
-      # OPFS needs SharedArrayBuffer, which needs these on every response — GitHub Pages can't set
-      # custom headers at all, which is the whole reason this deploys to Cloudflare Pages instead.
-      # public/_headers is copied into dist/ by the export above; this just fails loudly if the
-      # file it depends on ever goes missing, rather than shipping a build that can't open its DB.
-      - name: Verify COOP/COEP headers file made it into the export
-        run: test -f dist/_headers
-
       # cloudflare/pages-action is deprecated in favor of wrangler-action; this is the deploy
       # command it recommends in its own place, `pages deploy <dir> --project-name=<name>`.
       - name: Deploy to Cloudflare Pages
