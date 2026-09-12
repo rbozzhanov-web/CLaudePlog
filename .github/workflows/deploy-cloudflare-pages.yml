@@ -6,7 +6,7 @@ on:
       project_name:
         description: 'Cloudflare Pages project name (created beforehand in the Cloudflare dashboard)'
         required: true
-        default: 'claudeplog'
+        default: 'pwaplog'
 
 jobs:
   deploy:
@@ -42,11 +42,12 @@ jobs:
       - name: Verify COOP/COEP headers file made it into the export
         run: test -f dist/_headers
 
+      # cloudflare/pages-action is deprecated in favor of wrangler-action; this is the deploy
+      # command it recommends in its own place, `pages deploy <dir> --project-name=<name>`.
       - name: Deploy to Cloudflare Pages
-        uses: cloudflare/pages-action@v1
+        uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          projectName: ${{ inputs.project_name }}
-          directory: dist
+          command: pages deploy dist --project-name=${{ inputs.project_name }}
           gitHubToken: ${{ secrets.GITHUB_TOKEN }}
