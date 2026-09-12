@@ -58,6 +58,8 @@ export default function RootLayout() {
           <Stack.Screen name="entry/new" options={{ title: 'New flight' }} />
           <Stack.Screen name="entry/[id]" options={{ title: 'Edit flight' }} />
           <Stack.Screen name="import/pick" options={{ title: 'Import from PDF' }} />
+          <Stack.Screen name="import/review" options={{ title: 'Review import' }} />
+          <Stack.Screen name="import/review-edit/[index]" options={{ title: 'Edit flight' }} />
         </Stack>
       )}
     </ThemeProvider>
