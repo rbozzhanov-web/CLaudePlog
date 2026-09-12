@@ -17,7 +17,7 @@ export function ScreenTitle({ title }: { title: string }) {
   const insets = useSafeAreaInsets();
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top + 8 }]}>
+    <View style={[styles.container, { paddingTop: insets.top + 24 }]}>
       <Text style={styles.title}>{title}</Text>
     </View>
   );
