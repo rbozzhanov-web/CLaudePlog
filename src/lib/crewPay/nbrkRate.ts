@@ -9,9 +9,17 @@
  * the CURRENT date, and a weekend/holiday's feed simply carries the last business day's number
  * forward under that same date — so querying with `fdate` = the exact date wanted is correct, no
  * separate backward-fallback loop is needed here.
+ *
+ * Fetched through /api/nbrk-rate (a Cloudflare Pages Function, see functions/api/nbrk-rate.ts)
+ * rather than nationalbank.kz directly: that host sends no CORS header, so a browser blocks the
+ * direct request outright, unlike React Native which doesn't enforce CORS at all. The function is
+ * a thin same-origin pass-through — same XML, same parsing below, just fetched server-side where
+ * CORS doesn't apply. Only reachable once deployed to Cloudflare Pages; in local `expo start
+ * --web` this 404s and the existing catch in fetchNbrkEurRate below degrades to manual entry,
+ * same as any other fetch failure.
  */
 
-const NBRK_RATES_URL = 'https://nationalbank.kz/rss/get_rates.cfm';
+const NBRK_RATES_URL = '/api/nbrk-rate';
 
 /** "2026-07" -> "31.07.2026", the last calendar day of that month. */
 export function lastDayOfMonthDdMmYyyy(month: string): string {
